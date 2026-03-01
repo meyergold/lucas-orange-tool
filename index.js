@@ -45,7 +45,6 @@ async function generateVideo(summary) {
         voice: {
           type: "text",
           input_text: texte,
-          voice_id: process.env.HEYGEN_VOICE_ID
         }
       }],
       dimension: { width: 1280, height: 720 }
