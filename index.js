@@ -45,7 +45,7 @@ async function generateVideo(summary) {
        voice: {
   type: "text",
   input_text: texte,
-  voice_id: "2d5b0e6cf36f460aa7fc47e3eee4ba54"
+  voice_id: "8b43b00bd7f249ae8fa204b2a51d0f5a"
 }
       }],
       dimension: { width: 1280, height: 720 }
