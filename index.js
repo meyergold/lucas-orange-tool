@@ -5,8 +5,9 @@ const app = express();
 app.use(express.json());
 
 app.post("/tool/send_recap_video", async (req, res) => {
-  const args = req.body.args || req.body;
-  const { conversation_summary, phone_number } = args;
+  console.log("BODY COMPLET:", JSON.stringify(req.body));
+const conversation_summary = req.body.args?.conversation_summary || req.body.conversation_summary || req.body.args?.conversation_summary;
+const phone_number = req.body.args?.phone_number || req.body.phone_number;
 
   console.log(":telephone_receiver: Résumé reçu :", conversation_summary);
   console.log(":iphone: Envoi à :", phone_number);
