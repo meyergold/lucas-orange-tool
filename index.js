@@ -2,13 +2,21 @@ import express from "express";
 import fetch from "node-fetch";
 
 const app = express();
-app.use(express.json());
-
+app.use(express.urlencoded({ extended: true }));
 app.post("/tool/send_recap_video", async (req, res) => {
   console.log("BODY COMPLET:", JSON.stringify(req.body));
-const conversation_summary = req.body.args?.conversation_summary || req.body.conversation_summary || req.body.args?.conversation_summary;
-const phone_number = req.body.args?.phone_number || req.body.phone_number;
+console.log("BODY:", JSON.stringify(req.body));
+console.log("QUERY:", JSON.stringify(req.query));
+console.log("HEADERS:", JSON.stringify(req.headers));
+const conversation_summary = 
+  req.body?.args?.conversation_summary || 
+  req.body?.conversation_summary ||
+  req.query?.conversation_summary;
 
+const phone_number = 
+  req.body?.args?.phone_number || 
+  req.body?.phone_number ||
+  req.query?.phone_number;
   console.log(":telephone_receiver: Résumé reçu :", conversation_summary);
   console.log(":iphone: Envoi à :", phone_number);
 
