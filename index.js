@@ -2,23 +2,26 @@ import express from "express";
 import fetch from "node-fetch";
 
 const app = express();
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.post("/tool/send_recap_video", async (req, res) => {
-  console.log("BODY COMPLET:", JSON.stringify(req.body));
-console.log("BODY:", JSON.stringify(req.body));
-console.log("QUERY:", JSON.stringify(req.query));
-console.log("HEADERS:", JSON.stringify(req.headers));
-const conversation_summary = 
-  req.body?.args?.conversation_summary || 
-  req.body?.conversation_summary ||
-  req.query?.conversation_summary;
 
-const phone_number = 
-  req.body?.args?.phone_number || 
-  req.body?.phone_number ||
-  req.query?.phone_number;
-  console.log(":telephone_receiver: Résumé reçu :", conversation_summary);
-  console.log(":iphone: Envoi à :", phone_number);
+app.post("/tool/send_recap_video", async (req, res) => {
+  console.log("BODY:", JSON.stringify(req.body));
+  console.log("QUERY:", JSON.stringify(req.query));
+  console.log("HEADERS:", JSON.stringify(req.headers));
+
+  const conversation_summary =
+    req.body?.args?.conversation_summary ||
+    req.body?.conversation_summary ||
+    req.query?.conversation_summary;
+
+  const phone_number =
+    req.body?.args?.phone_number ||
+    req.body?.phone_number ||
+    req.query?.phone_number;
+
+  console.log("Résumé reçu :", conversation_summary);
+  console.log("Envoi à :", phone_number);
 
   // On répond immédiatement à Retell
   res.json({ result: "Parfait ! Votre récap vidéo sera envoyé sur WhatsApp dans quelques minutes !" });
@@ -29,20 +32,20 @@ const phone_number =
 
 async function generateAndSend(summary, phone) {
   try {
-    console.log(":clapper: Génération de la vidéo...");
+    console.log("Génération de la vidéo...");
     const videoUrl = await generateVideo(summary);
-    console.log(":white_check_mark: Vidéo prête :", videoUrl);
+    console.log("Vidéo prête :", videoUrl);
     await sendWhatsApp(phone, videoUrl);
-    console.log(":white_check_mark: WhatsApp envoyé !");
+    console.log("WhatsApp envoyé !");
   } catch (err) {
-    console.error(":x: Erreur :", err.message);
+    console.error("Erreur :", err.message);
   }
 }
 
 async function generateVideo(summary) {
   const texte = `Bonjour ! Je suis Lucas, conseiller Orange. Voici le récapitulatif de notre échange : ${summary}. N'hésitez pas à nous rappeler pour toute question. À bientôt !`;
 
-  console.log(":memo: Texte vidéo :", texte);
+  console.log("Texte vidéo :", texte);
 
   const response = await fetch("https://api.heygen.com/v2/video/generate", {
     method: "POST",
@@ -83,7 +86,7 @@ async function generateVideo(summary) {
     );
     const statusData = await statusRes.json();
     const status = statusData.data?.status;
-    console.log(`:hourglass_flowing_sand: Statut (${i + 1}/40) :`, status);
+    console.log(`Statut vidéo (${i + 1}/40) :`, status);
     if (status === "completed") return statusData.data.video_url;
     if (status === "failed") throw new Error("Génération échouée");
   }
@@ -98,7 +101,7 @@ async function sendWhatsApp(phone, videoUrl) {
   const body = new URLSearchParams({
     From: `whatsapp:${fromNumber}`,
     To: `whatsapp:${phone}`,
-    Body: ":clapper: Voici votre récap vidéo de notre échange avec Lucas, conseiller Orange Maison Protégée !",
+    Body: "Voici votre récap vidéo de notre échange avec Lucas, conseiller Orange Maison Protégée !",
     MediaUrl: videoUrl,
   });
 
@@ -115,7 +118,7 @@ async function sendWhatsApp(phone, videoUrl) {
   );
 
   const result = await res.json();
-  console.log("Twilio:", JSON.stringify(result));
+  console.log("Twilio response:", JSON.stringify(result));
   if (result.error_code) throw new Error("Twilio : " + result.message);
 }
 
@@ -124,4 +127,4 @@ function attendre(ms) {
 }
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`:rocket: Serveur démarré sur le port ${PORT}`));
+app.listen(PORT, () => console.log(`Serveur démarré sur le port ${PORT}`));
