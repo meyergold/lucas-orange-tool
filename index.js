@@ -16,6 +16,58 @@ app.use((req, res, next) => {
   });
 });
 
+app.post("/tool/search_company", async (req, res) => {
+  console.log("BODY PARSED:", JSON.stringify(req.body));
+
+  const query =
+    req.body?.args?.query ||
+    req.body?.query ||
+    req.body?.args?.company ||
+    req.body?.company;
+
+  if (!query) {
+    return res.json({ result: "Pouvez-vous me donner le nom ou le SIREN de l'entreprise ?" });
+  }
+
+  try {
+    const url = `https://recherche-entreprises.api.gouv.fr/search?q=${encodeURIComponent(query)}&per_page=3`;
+    const r = await fetch(url);
+    const data = await r.json();
+
+    if (!data.results || data.results.length === 0) {
+      return res.json({ result: `Aucune entreprise trouvée pour "${query}".` });
+    }
+
+    const companies = data.results.slice(0, 3).map(c => {
+      const siege = c.siege || {};
+      return {
+        nom: c.nom_complet || c.nom_raison_sociale,
+        siren: c.siren,
+        siret_siege: siege.siret,
+        activite: c.activite_principale,
+        categorie: c.categorie_entreprise,
+        tranche_effectif: c.tranche_effectif_salarie,
+        date_creation: c.date_creation,
+        etat: c.etat_administratif,
+        adresse: siege.adresse,
+        code_postal: siege.code_postal,
+        ville: siege.libelle_commune,
+        dirigeants: (c.dirigeants || []).slice(0, 3).map(d =>
+          d.nom ? `${d.prenoms || ""} ${d.nom}`.trim() : d.denomination
+        ).filter(Boolean),
+      };
+    });
+
+    const top = companies[0];
+    const summary = `${top.nom} (SIREN ${top.siren}), ${top.categorie || "entreprise"} située ${top.adresse || ""} ${top.ville || ""}. Activité : ${top.activite || "non précisée"}. État : ${top.etat || "inconnu"}.`;
+
+    res.json({ result: summary, companies });
+  } catch (err) {
+    console.error("Erreur search_company :", err.message);
+    res.json({ result: "Impossible de consulter la base entreprises pour le moment." });
+  }
+});
+
 app.post("/tool/send_recap_video", async (req, res) => {
   console.log("BODY PARSED:", JSON.stringify(req.body));
 
